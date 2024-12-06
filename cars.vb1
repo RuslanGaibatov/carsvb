@@ -1,0 +1,119 @@
+Imports System.Drawing
+
+Public Class Form1
+    Dim carX As Integer = 150
+    Dim carY As Integer = 400
+    Dim carSpeed As Integer = 5
+    Dim obstacleSpeed As Integer = 3
+    Dim random As New Random()
+
+    Dim obstaclesX(4) As Integer
+    Dim obstaclesY(4) As Integer
+    Dim obstaclesWidth(4) As Integer
+
+    Dim moveUp As Boolean = False
+    Dim moveDown As Boolean = False
+    Dim moveLeft As Boolean = False
+    Dim moveRight As Boolean = False
+
+    Dim gameTimer As New Timer()
+
+    Public Sub New()
+        InitializeComponent()
+
+        For i As Integer = 0 To obstaclesX.Length - 1
+            obstaclesX(i) = random.Next(50, 350)
+            obstaclesY(i) = -random.Next(100, 500)
+            obstaclesWidth(i) = random.Next(40, 100)
+        Next
+
+        gameTimer.Interval = 20
+        AddHandler gameTimer.Tick, AddressOf GameTimer_Tick
+        gameTimer.Start()
+
+        DoubleBuffered = True
+    End Sub
+
+    Private Sub Form1_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
+        If e.KeyCode = Keys.W Then
+            moveUp = True
+        End If
+        If e.KeyCode = Keys.S Then
+            moveDown = True
+        End If
+        If e.KeyCode = Keys.A Then
+            moveLeft = True
+        End If
+        If e.KeyCode = Keys.D Then
+            moveRight = True
+        End If
+    End Sub
+
+    Private Sub Form1_KeyUp(sender As Object, e As KeyEventArgs) Handles Me.KeyUp
+        If e.KeyCode = Keys.W Then
+            moveUp = False
+        End If
+        If e.KeyCode = Keys.S Then
+            moveDown = False
+        End If
+        If e.KeyCode = Keys.A Then
+            moveLeft = False
+        End If
+        If e.KeyCode = Keys.D Then
+            moveRight = False
+        End If
+    End Sub
+
+    Private Sub GameTimer_Tick(sender As Object, e As EventArgs)
+        If carSpeed < 15 Then
+            carSpeed += 1
+        End If
+
+        If moveUp AndAlso carY > 0 Then
+            carY -= carSpeed
+        End If
+        If moveDown AndAlso carY < Me.ClientSize.Height - 60 Then
+            carY += carSpeed
+        End If
+        If moveLeft AndAlso carX > 0 Then
+            carX -= carSpeed
+        End If
+        If moveRight AndAlso carX < Me.ClientSize.Width - 60 Then
+            carX += carSpeed
+        End If
+
+        For i As Integer = 0 To obstaclesX.Length - 1
+            obstaclesY(i) += obstacleSpeed
+            If obstaclesY(i) > Me.ClientSize.Height Then
+                obstaclesY(i) = -random.Next(100, 500)
+                obstaclesX(i) = random.Next(50, 350)
+                obstaclesWidth(i) = random.Next(40, 100)
+            End If
+        Next
+
+        For i As Integer = 0 To obstaclesX.Length - 1
+            If carX < obstaclesX(i) + obstaclesWidth(i) AndAlso
+               carX + 60 > obstaclesX(i) AndAlso
+               carY < obstaclesY(i) + 40 AndAlso
+               carY + 60 > obstaclesY(i) Then
+                gameTimer.Stop()
+                MessageBox.Show("Game Over!")
+                Me.Close()
+            End If
+        Next
+
+        Me.Invalidate()
+    End Sub
+
+    Protected Overrides Sub OnPaint(e As PaintEventArgs)
+        MyBase.OnPaint(e)
+
+        Dim g As Graphics = e.Graphics
+
+        g.FillRectangle(Brushes.Red, carX, carY, 60, 60)
+
+        For i As Integer = 0 To obstaclesX.Length - 1
+            g.FillRectangle(Brushes.Blue, obstaclesX(i), obstaclesY(i), obstaclesWidth(i), 40)
+        Next
+    End Sub
+End Class
